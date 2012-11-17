@@ -9,6 +9,7 @@
  
  This example code is in the public domain.
  Additional Code by J Coxon (http://ukhas.org.uk/guides:falcom_fsa03)
+ Additional Code by C Atherton (http://www.routetospace.com/RTSHAB01) 
  */
  
 #include <SoftwareSerial.h>
