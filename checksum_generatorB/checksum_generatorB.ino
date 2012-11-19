@@ -14,6 +14,7 @@ This is to be used to determine the checksums for Ublox 6 configuration codes.
 //char *sting()
 String frame = "0x06,0x24,0x24,0x00";
 int inchar = ","; 
+
 char *input[4];
 int stingin;
 char *sep = ", ";
