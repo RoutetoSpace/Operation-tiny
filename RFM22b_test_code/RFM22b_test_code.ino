@@ -3,6 +3,19 @@
  
 //Setup radio on SPI with NSEL on pin 10
 rfm22 radio1(10);
+
+
+void setup()
+{
+}
+
+void loop()
+{
+  //Quick test
+  radio1.write(0x07, 0x08); // turn tx on
+  delay(1000);
+  radio1.write(0x07, 0x01); // turn tx off
+}
  
 void setupRadio(){
  
@@ -23,8 +36,6 @@ void setupRadio(){
   radio1.setFrequency(434.201);
  
   //Quick test
-  radio1.write(0x07, 0x08); // turn tx on
-  delay(1000);
-  radio1.write(0x07, 0x01); // turn tx off
+  
  
 }
