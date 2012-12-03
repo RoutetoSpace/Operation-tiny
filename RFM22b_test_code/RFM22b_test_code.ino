@@ -13,8 +13,13 @@ void setup()
 void loop()
 {
   //Quick test
-  Serial.println("test");
+  Serial.println("Before radio write");
+  //Quick test  
+  radio1.write(0x07, 0x08); // turn tx on
   delay(2500);
+  radio1.write(0x07, 0x01); // turn tx off
+  delay(1000);
+  Serial.println("after radio write");
   
 }
  
@@ -36,10 +41,5 @@ void setupRadio(){
  
   radio1.setFrequency(434.201);
  
-  //Quick test
   
- radio1.write(0x07, 0x08); // turn tx on
-  delay(1000);
-  radio1.write(0x07, 0x01); // turn tx off
-  delay(1000);
 }
