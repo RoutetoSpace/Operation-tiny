@@ -7,14 +7,15 @@ rfm22 radio1(10);
 
 void setup()
 {
+ Serial.begin(9600);
 }
 
 void loop()
 {
   //Quick test
-  radio1.write(0x07, 0x08); // turn tx on
-  delay(1000);
-  radio1.write(0x07, 0x01); // turn tx off
+  Serial.println("test");
+  delay(2500);
+  
 }
  
 void setupRadio(){
@@ -37,5 +38,8 @@ void setupRadio(){
  
   //Quick test
   
- 
+ radio1.write(0x07, 0x08); // turn tx on
+  delay(1000);
+  radio1.write(0x07, 0x01); // turn tx off
+  delay(1000);
 }
