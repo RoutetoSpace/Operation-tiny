@@ -42,7 +42,7 @@ void loop()
   ADCValue = analogRead(AD22100S);
   Voltage = (ADCValue / 1023.0) * Vcc;  
   Valout = map(ADCValue, 0, 1024, -50, 150); //maps the analogue read output range to the temperature range
-  Valout2 = map(Voltage,0, 1024, -50, 150); //maps the corrected analogue read output to the temp range
+  Valout2 = map(Voltage, 0, 1024, -50, 150); //maps the corrected analogue read output to the temp range
   Serial.print(Vcc); //print the Vcc value
   Serial.print("\t");
   Serial.println("Vcc");
@@ -52,6 +52,9 @@ void loop()
   Serial.print(Voltage);
   Serial.print("\t");
   Serial.println("mV");
+  Serial.print(Valout2);
+  Serial.print("\t");
+  Serial.println("Deg C");
   Serial.print(ADCValue);
   Serial.print("\t");
   Serial.println("Value from pin");
