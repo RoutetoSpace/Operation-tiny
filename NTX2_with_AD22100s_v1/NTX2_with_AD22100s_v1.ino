@@ -1,18 +1,18 @@
-/*  NTX2 Radio Test Part 2
+/*  NTX2 Radio with temp sensor.  Adapted from NTX2 Radio Test Part 2 by Rob Harrison and M0UPU
  
-    Transmits data via RTTY with a checksum.
+    Transmits temp via RTTY with a checksum.
  
-    Created 2012 by M0UPU as part of a UKHAS Guide on linking NTX2 Modules to Arduino.
-    RTTY code from Rob Harrison Icarus Project. 
-    http://ukhas.org.uk
+    By C Atherton 2012 - www.routetospace.com
 */ 
  
 #define RADIOPIN 13
- 
+#define AD22100S 0 //define temp sensor pin
 #include <string.h>
 #include <util/crc16.h>
  
 char datastring[80];
+int Valout;
+unsigned int ADCValue; //ADC = analog digital converter
  
 void setup() {                
   pinMode(RADIOPIN,OUTPUT);
