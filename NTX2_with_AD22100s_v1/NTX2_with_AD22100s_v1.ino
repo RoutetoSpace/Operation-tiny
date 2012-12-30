@@ -16,12 +16,13 @@ unsigned int ADCValue; //ADC = analog digital converter
  
 void setup() {                
   pinMode(RADIOPIN,OUTPUT);
+  ADCValue = analogRead(AD22100S);
 }
  
 void loop() {
- 
- 
-  sprintf(datastring,"RTTY TEST BEACON RTTY TEST BEACON"); // Puts the text in the datastring
+  
+  Valout = map(ADCValue, 0, 1024, -50, 150);
+  sprintf(datastring,"RTTY TEST BEACON, the temperature is %d DEG C", Valout); // Puts the text in the datastring
   unsigned int CHECKSUM = gps_CRC16_checksum(datastring);  // Calculates the checksum for this datastring
   char checksum_str[6];
   sprintf(checksum_str, "*%04X\n", CHECKSUM);
