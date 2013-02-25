@@ -3,6 +3,19 @@
     Transmits temp via RTTY with a checksum.
  
     By C Atherton 2012 - www.routetospace.com
+    
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */ 
  
 #define RADIOPIN 13
@@ -14,6 +27,7 @@ SoftwareSerial GPS(4, 5);  //RX pin 4, TX pin5
 byte gps_set_sucess = 0 ;
 char datastring[80];
 char GPSdatastr[80];
+long hold;
 int Valout;
 unsigned int ADCValue; //ADC = analog digital converter
  
@@ -25,9 +39,9 @@ void setup() {
   Serial.begin(9600);
   sprintf(GPSdatastr,"Route to Space RTS01");
   rtty_txstring (GPSdatastr);
-  sprintf(datastring,"31/12/2012 CATHERTON");
+  sprintf(GPSdatastr,"31/12/2012 CATHERTON");
   rtty_txstring (GPSdatastr);
-  sprintf(datastring,"Initialising....");
+  sprintf(GPSdatastr,"Initialising....");
   rtty_txstring (GPSdatastr);
   //
   // THE FOLLOWING COMMAND SWITCHES MODULE TO 4800 BAUD
@@ -56,10 +70,18 @@ void loop() {
   {
     if(GPS.available())
     {
-      // THIS IS THE MAIN LOOP JUST READS IN FROM THE GPS SERIAL AND ECHOS OUT TO THE ARDUINO SERIAL.
-      Serial.write(GPS.read()); 
+      // THIS IS THE MAIN LOOP JUST READS IN FROM THE GPS SERIAL AND ECHOS OUT TO THE radio.
+    //  Serial.write(GPS.read());
+      sprintf(datastring,"%d", GPS.read());
+     //**--** Bookmark.  Up to here with writing code code 
     }
- 
+   
+  unsigned int CHECKSUM = gps_CRC16_checksum(datastring);  // Calculates the checksum for this datastring
+  char checksum_str[6];
+  sprintf(checksum_str, "*%04X\n", CHECKSUM);
+  strcat(datastring,checksum_str);
+  rtty_txstring (datastring);
+  delay(2000);
   }
   
   Valout = map(ADCValue, 0, 1024, -50, 150);
