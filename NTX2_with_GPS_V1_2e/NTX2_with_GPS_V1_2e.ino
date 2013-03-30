@@ -34,6 +34,16 @@
     Checking GPS section start in loop.  Loop in um232r test code pulls data from the hardware serial before wring to the software serial.  This code was the other way around in my code.  Switched it to match working code.  **This worked**
     
     Need to check RTTY Section start - possible padding issue and data strings which are being sent but not declered.  Follow http://ukhas.org.uk/guides:common_coding_errors_payload_testing
+    
+    datastring pointer issue now resolved.
+    
+    Note - having ublox ucentre open when unit is transmitting causes the payload to stop.  Assume software serial is waiting a command
+    
+    Testing reports CRC checksum invalid.  Check crc checksum routine.
+    
+    Added RTSHAB as the payload callsign
+    
+    
     */ 
 
 //Includes section
@@ -42,6 +52,8 @@
 #include <string.h>
 #include <util/crc16.h>
 #include <SoftwareSerial.h>
+#include <stdio.h>
+#include <stdint.h>
 
 //Definition section
 #define RADIOPIN 13 
@@ -74,7 +86,7 @@ void setup() {
   
   // THIS COMMAND SETS UP THE GPS FIGHT MODE AND CONFIRMS IT - This section was missing from my previous code
   
-  //noInterrupts();  //Stop all other tasks
+  
   GPS_SS.println("Setting uBlox nav mode: ");
   uint8_t setNav[] = {
     0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                      };
@@ -84,11 +96,9 @@ void setup() {
     gps_set_sucess=getUBX_ACK(setNav);
   }
   gps_set_sucess=0;
-  //interrupts();
   
-  //up to here
   
-  //Initialisation script
+  //Initialisation script sent via serial
   
   Serial.println("RTSHAB01 ");
   Serial.println("High alititude tracker for use in habbing, developed by Chris Atherton ");
@@ -99,7 +109,7 @@ void setup() {
   Serial.println();
   
   //Send string via RTTY to say RTSHAB01 is active
-  sprintf(datastring,"$$NSE POWER ON n");
+  sprintf(datastring,"$$RTSHAB POWER ON n");
   noInterrupts();  //Stop all other tasks
   rtty_txtstring (datastring);  
   interrupts();
@@ -191,7 +201,7 @@ if (newGPSData)
  if(newGPSData == false)
    {
     Serial.println("No new data");
-    sprintf(datastring,"$$NSE,NOGPS");
+    sprintf(datastring,"$$RTSHAB,NOGPS");
     noInterrupts();  //Stop all other tasks
     rtty_txtstring (datastring);  //Send "No new data" text string via RTTY
     interrupts();    //Start tasks again
@@ -207,10 +217,10 @@ if (newGPSData)
   Serial.print(" CSUM ERR=");
   Serial.println(failed);
  
-//SGPS SECTION END
+//Serial GPS SECTION END
 
 //RTTY SECTION START
-  sprintf(datastring,"$$$$NSE,%i,%s,%s,%s,%i,%i",msgcount,timechara,latstr,lonstr,alt,sats); // Puts the required data in the datastring  -  removed 3 unnecessary %i's
+  sprintf(datastring,"$$$$RTSHAB,%i,%s,%s,%s,%i,%i",msgcount,timechara,latstr,lonstr,alt,sats); // Puts the required data in the datastring  -  removed 3 unnecessary %i's
   unsigned int CHECKSUM = gps_CRC16_checksum(datastring);  // Calculates the checksum for this datastring
   char checksum_str[6];
   sprintf(checksum_str, "*%04X\n", CHECKSUM);
