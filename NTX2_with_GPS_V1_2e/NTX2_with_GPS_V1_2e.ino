@@ -43,6 +43,9 @@
     
     Added RTSHAB as the payload callsign
     
+    Changed to RTSHAB-TEST to correct upload issue
+    
+    remored extra $$ from datastring to correct parsing error
     
     */ 
 
@@ -109,7 +112,7 @@ void setup() {
   Serial.println();
   
   //Send string via RTTY to say RTSHAB01 is active
-  sprintf(datastring,"$$RTSHAB POWER ON n");
+  sprintf(datastring,"$$RTSHAB-TEST POWER ON /n");
   noInterrupts();  //Stop all other tasks
   rtty_txtstring (datastring);  
   interrupts();
@@ -201,7 +204,7 @@ if (newGPSData)
  if(newGPSData == false)
    {
     Serial.println("No new data");
-    sprintf(datastring,"$$RTSHAB,NOGPS");
+    sprintf(datastring,"$$RTSHAB-TEST,NOGPS /n");
     noInterrupts();  //Stop all other tasks
     rtty_txtstring (datastring);  //Send "No new data" text string via RTTY
     interrupts();    //Start tasks again
@@ -220,12 +223,25 @@ if (newGPSData)
 //Serial GPS SECTION END
 
 //RTTY SECTION START
-  sprintf(datastring,"$$$$RTSHAB,%i,%s,%s,%s,%i,%i",msgcount,timechara,latstr,lonstr,alt,sats); // Puts the required data in the datastring  -  removed 3 unnecessary %i's
-  unsigned int CHECKSUM = gps_CRC16_checksum(datastring);  // Calculates the checksum for this datastring
-  char checksum_str[6];
-  sprintf(checksum_str, "*%04X\n", CHECKSUM);
+
+//constructs the data string
+  sprintf(datastring, "$$RTSHAB-TEST,%i,%s,%s,%s,%i,%i,",msgcount,timechara,latstr,lonstr,alt,sats); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
+            //sizeof(datastring) removed due to compiler error - invalid change from int to const*Char
+//constructs the checksum  
+  char checksum_str[10]; //checksum size changed from 6 to 10 to match ukhas wiki
+  sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
+            //sizeof(checksum_str) removed due to compiler error - invalid change from int to const*Char
+//error checking 
+if (strlen(datastring) > sizeof(datastring) - 4 - 1)
+{
+  //don't over flow the buffer.  You should make it bigger
+  return;
+}
+//Copy the checksum terminating \o (hence the +1
+//  removed this line becuase two checksums were sent memcpy(datastring + strlen(datastring), checksum_str, strlen(checksum_str) + 1);
+//Concatinate the datastring and the checksum together  
   strcat(datastring,checksum_str);
- 
+//Send the data string with the checksum 
   Serial.println(datastring);//Output data to serial
   noInterrupts();
   rtty_txtstring (datastring);//Output data via RTTY
@@ -309,6 +325,8 @@ void rtty_txbit (int bit)
  
 }
  
+ 
+ //Checksum code
 uint16_t gps_CRC16_checksum (char *string)
 {
   size_t i;
