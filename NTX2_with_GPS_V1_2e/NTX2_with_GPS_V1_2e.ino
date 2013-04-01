@@ -45,7 +45,9 @@
     
     Changed to RTSHAB-TEST to correct upload issue
     
-    remored extra $$ from datastring to correct parsing error
+    removed extra $$ from datastring to correct parsing error
+    
+    Noticed that when payload has no GPS fix, the old telematry is still sent
     
     */ 
 
