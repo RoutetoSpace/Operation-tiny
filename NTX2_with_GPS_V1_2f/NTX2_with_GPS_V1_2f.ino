@@ -19,7 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-    declaration of sats incorrect.  wrong value
+    declaration of sats incorrect.  wrong value - moved declarations to after the point the GPS is called
     test payload with gps data to see if there are any issues - see ukhas payload testing page for details
     need to update GPS configuration setting to match the values I require on startup
     Need to correct the upload issue.  Arduino fails to upload when GPS is active.  When disabled (rx or tx removed) upload completes successfully.  Issue is the same when uploading GPS test script.
@@ -105,10 +105,7 @@ void loop() {
  bool newGPSData = false; 
  unsigned long chars;
  unsigned short sentences, failed; 
- int sats = GPS.satellites(); //number of satellites that are in view
- int alt = GPS.f_altitude(); // +/- altitude in meters
- int velocity = GPS.f_speed_mps()*10;
- int heading = GPS.f_course();
+
     
     
 //GPS SECTION START    
@@ -125,6 +122,11 @@ void loop() {
         newGPSData = true;
     }
   }
+
+ int sats = GPS.satellites(); //number of satellites that are in view
+ int alt = GPS.f_altitude(); // +/- altitude in meters
+ int velocity = GPS.f_speed_mps()*10;
+ int heading = GPS.f_course();
 
 if (newGPSData)
   {
