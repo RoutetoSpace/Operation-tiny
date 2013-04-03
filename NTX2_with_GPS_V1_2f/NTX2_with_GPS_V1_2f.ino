@@ -19,37 +19,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-    
-    We know that the GPS works when using the UM232R and the test code
-    When the GPS is connected as per Chris's code (without UM232R) the data that is being thrown out by the GPS is unreadable.  Most probably due to the baud rate not being set correctly
-    Simply Adding the UM232R doesn't work.  No GPS data is pulled using putty to Com5
-    
-    All errors point to Software serial being the cause of the serial data not being received. 
-    
-    Added Software serial code from UKHAS site.  Now getting 'Setting ublox nav mode' via Com5 on putty but no response
-    Set Nav mode code is being sent via software serial but not hardware serial.
-    Waiting for response from GPS, turned off no interrupts in  GPS flight mode to see if this is causing the issue. **This was the cause**
-    
-    Successfully set nav mode but no GPS data being received from GPS to UM232R.
-    Checking GPS section start in loop.  Loop in um232r test code pulls data from the hardware serial before wring to the software serial.  This code was the other way around in my code.  Switched it to match working code.  **This worked**
-    
-    Need to check RTTY Section start - possible padding issue and data strings which are being sent but not declered.  Follow http://ukhas.org.uk/guides:common_coding_errors_payload_testing
-    
-    datastring pointer issue now resolved.
-    
-    Note - having ublox ucentre open when unit is transmitting causes the payload to stop.  Assume software serial is waiting a command
-    
-    Testing reports CRC checksum invalid.  Check crc checksum routine.
-    
-    Added RTSHAB as the payload callsign
-    
-    Changed to RTSHAB-TEST to correct upload issue
-    
-    removed extra $$ from datastring to correct parsing error
-    
-    Noticed that when payload has no GPS fix, the old telematry is still sent
-    
-    
+    declaration of sats incorrect.  wrong value
+    test payload with gps data to see if there are any issues - see ukhas payload testing page for details
+    need to update GPS configuration setting to match the values I require on startup
+    Need to correct the upload issue.  Arduino fails to upload when GPS is active.  When disabled (rx or tx removed) upload completes successfully.  Issue is the same when uploading GPS test script.
+       
     */ 
 
 //Includes section
