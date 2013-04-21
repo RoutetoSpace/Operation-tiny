@@ -52,10 +52,10 @@ char datastring[200];
 
 int msgcount = 0;
  
-void setup() {                
+void setup() { 
+  delay(5000);  //prevents locking of the serial port
   pinMode(RADIOPIN,OUTPUT);
-  delay(5000); //allows the GPS to settle
-  
+     
   //Start the serial and GPS serial
   Serial.begin(9600);
   GPS_SS.begin(9600);
@@ -110,7 +110,7 @@ void loop() {
     
 //GPS SECTION START    
     
-   //Begin parsing GPS data 
+//Begin parsing GPS data 
    for (unsigned long start = millis(); millis() - start < 1000;)
   {
     while (Serial.available())
@@ -206,7 +206,7 @@ if (newGPSData)
  if(newGPSData == false)
    {
     Serial.println("No new data");
-    sprintf(datastring,"$$RTSHAB-TEST,NOGPS,%i,",sats);
+    sprintf(datastring,"$$RTSHAB-TEST,%i,NOGPS,%i,",msgcount,sats);
     char checksum_str[10];
     sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));
     if (strlen(datastring) > sizeof(datastring) - 4 - 1)
