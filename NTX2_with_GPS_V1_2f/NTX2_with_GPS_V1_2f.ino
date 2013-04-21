@@ -85,7 +85,7 @@ void setup() {
   Serial.println();
   
   //Send string via RTTY to say RTSHAB01 is active
-  sprintf(datastring,"$$RTSHAB-TEST POWER ON /n");
+  sprintf(datastring,"$$RTSHAB-TEST POWER ON \n");
   noInterrupts();  //Stop all other tasks
   rtty_txtstring (datastring);  
   interrupts();
