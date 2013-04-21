@@ -1,18 +1,18 @@
 #include <string.h>
+#include <iostream.h>
 
 void setup() {
   // initialize serial:
-  delay(2500);
   Serial.begin(9600);
   // reserve 200 bytes for the inputString:
   
 }
 
-void loop() {
-  
-  lineprt;
-delay(2500);  
-  }
+void loop() 
+{
+  lineprt();
+  delay(2500);  
+ }
   
 void lineprt(){
   Serial.println("RTSHAB01 ");
