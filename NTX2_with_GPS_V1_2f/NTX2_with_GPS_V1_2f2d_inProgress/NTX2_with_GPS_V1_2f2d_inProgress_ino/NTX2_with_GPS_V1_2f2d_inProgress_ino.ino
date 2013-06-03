@@ -103,7 +103,8 @@ void loop() {
  //GPS data declarations
  
 //GPS SECTION START    
-    GPSPARSE();
+    GPSPARSE(char datastring[200], char checksum_str[10]);
+    DATATOSEND(char datastring, char checksum_str);
 //Begin parsing GPS data 
 //Serial GPS SECTION END
 }
@@ -253,7 +254,7 @@ msgcount = msgcount + 1;
 
 
 //Begin parsing GPS data
-void GPSPARSE(){
+void GPSPARSE(char& datastring[200], char& checksum_str[10]){
 for (unsigned long start = millis(); millis() - start < 1000;)
  {
 while (Serial.available())
@@ -316,7 +317,7 @@ if (newGPSData)
             //sizeof(datastring) removed due to compiler error - invalid change from int to const*Char
      //constructs the checksum  
      //checksum size changed from 6 to 10 to match ukhas wiki
-    sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
+    sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X\n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
             //sizeof(checksum_str) removed due to compiler error - invalid change from int to const*Char
      //error checking 
       if (strlen(datastring) > sizeof(datastring) - 4 - 1)
@@ -327,7 +328,7 @@ if (newGPSData)
      //Copy the checksum terminating \o (hence the +1
      //  removed this line becuase two checksums were sent memcpy(datastring + strlen(datastring), checksum_str, strlen(checksum_str) + 1);
        
-    DATATOSEND(char datastring[200], char checksum_str[10]);
+    // DATATOSEND(char datastring[200], char checksum_str[10]);  moved to main loop
    
  }
 //RTTY SECTION END
