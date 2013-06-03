@@ -174,7 +174,7 @@ if (newGPSData)
    //RTTY SECTION START
 
      //constructs the data string
-    sprintf(datastring, "$$RTSHAB-TEST,%i,%s,%s,%s,%i,%i,%i,",msgcount,timechara,latstr,lonstr,alt,sats,accu); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
+    sprintf(datastring, "$$RTSHAB-TEST,%i,%s,%s,%s,%i,%i,",msgcount,timechara,latstr,lonstr,alt,sats); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
             //sizeof(datastring) removed due to compiler error - invalid change from int to const*Char
      //constructs the checksum  
     char checksum_str[10]; //checksum size changed from 6 to 10 to match ukhas wiki

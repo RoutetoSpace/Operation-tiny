@@ -43,8 +43,15 @@ TinyGPS GPS;
 SoftwareSerial GPS_SS(3, 4);  //GPS RX (DB0) -> Digital pin 3, GPS TX (DB1) -> Digital pin 4 
 byte gps_set_sucess = 0 ;  //success byte for GPS Software Serial
 char timechara[9];
-char latstr[10] = "0";
-char lonstr[10] = "0";
+char latstr[10] = "0";  //latitude global variable string
+char lonstr[10] = "0";  //longitude global variable string
+float flat, flon;       //float for the latitude and logitude variable
+unsigned long age;      //long int for 
+unsigned long fix_age;
+int year;
+byte month, day, hour, minute, second, hundredths;
+    
+
 
  
 //Data string declaration 
@@ -60,88 +67,59 @@ void setup() {
   Serial.begin(9600);
   GPS_SS.begin(9600);
   
-  // THIS COMMAND SETS UP THE GPS FIGHT MODE AND CONFIRMS IT - This section was missing from my previous code
-  
-  
-  GPS_SS.println("Setting uBlox nav mode: ");
-  uint8_t setNav[] = {
-    0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                      };
-  while(!gps_set_sucess)
-  {
-    sendUBX(setNav, sizeof(setNav)/sizeof(uint8_t));
-    gps_set_sucess=getUBX_ACK(setNav);
-  }
-  gps_set_sucess=0;
-  
-  
+  // THIS COMMAND SETS UP THE GPS FIGHT MODE AND CONFIRMS IT
+  GPSFLIGHT();
+    
   //Initialisation script sent via serial
-  
-  Serial.println("RTSHAB01 ");
-  Serial.println("High alititude tracker for use in habbing, developed by Chris Atherton ");
-  Serial.println("NTX2 code from UPU ");
-  Serial.println("TinyGPS code from Mikal Hart ");
-  Serial.println("Checksum code from Lunar_Lander ");
-  Serial.println("http://www.RoutetoSpace.com ");
-  Serial.println();
+  INITSCRIPT();
   
   //Send string via RTTY to say RTSHAB01 is active
-  sprintf(datastring,"$$RTSHAB-TEST POWER ON \n");
-  noInterrupts();  //Stop all other tasks
-  rtty_txtstring (datastring);  
-  interrupts();
+  ONLINESCRIPT();
   
 }
  
 void loop() {
  
-  //Start watchkeeping.  If message count reaches upper limit of Int then it is reset. 
-  msgcount = msgcount + 1;
-    if(msgcount > 32000)
-     {
-       msgcount = 1;
-     }
+ //Start watchkeeping.  If message count reaches upper limit of Int then it is reset. 
+ WATCHKEEPER();
     
-   //function declations 
- bool newGPSData = false; 
+ //function declations 
+ bool newGPSData = false;  
  unsigned long chars;
- unsigned short sentences, failed; 
+ unsigned short sentences, failed;
 
-    
-    
-//GPS SECTION START    
-    
-//Begin parsing GPS data 
-   for (unsigned long start = millis(); millis() - start < 1000;)
-  {
-    while (Serial.available())
-    {
-      char c = Serial.read();
-      GPS_SS.write(c); // uncomment this line if you want to see the GPS data flowing
-      
-      if (GPS.encode(c)) // Check to see if a new valid sentence come in?
-        newGPSData = true;
-    }
-  }
-
+ //GPS data declarations
  int sats = GPS.satellites(); //number of satellites that are in view
  int alt = GPS.f_altitude(); // +/- altitude in meters
  int velocity = GPS.f_speed_mps()*10;
  int heading = GPS.f_course();
  int accu = GPS.hdop();//Horizontal dilution of precision - the smaller the value is the more accurate the location
 
+//GPS SECTION START    
+    
+//Begin parsing GPS data 
+//GPSPARSE();
+for (unsigned long start = millis(); millis() - start < 1000;)
+ {
+while (Serial.available())
+    {
+      char c = Serial.read();
+      GPS_SS.write(c); // uncomment this line if you want to see the GPS data flowing
+      
+      if (GPS.encode(c)) // Check to see if a new valid sentence come in?
+      newGPSData = true;
+    }
+}
 if (newGPSData)
   {
      
-    float flat, flon;
-    unsigned long age;
+    
     GPS.f_get_position(&flat, &flon, &age);
     
     dtostrf(flat,9,6,latstr); // convert lat from float to string
     dtostrf(flon,9,6,lonstr); // convert lon from float to string
     
-    int year;
-    byte month, day, hour, minute, second, hundredths;
-    unsigned long fix_age;
+    
     GPS.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
  
     //build up time stamp
@@ -170,6 +148,7 @@ if (newGPSData)
     if (lonstr[0] == ' ') {
     lonstr[0] = '0';
     }
+
    
    //RTTY SECTION START
 
@@ -195,7 +174,8 @@ if (newGPSData)
   noInterrupts();
   rtty_txtstring (datastring);//Output data via RTTY
   interrupts();
-  delay(2000); 
+  delay(2000);
+   
  }
 //RTTY SECTION END
 
@@ -334,6 +314,67 @@ uint16_t gps_CRC16_checksum (char *string)
  
   return crc;
 }  
+
+//SETS UP THE GPS FIGHT MODE AND CONFIRMS IT
+void GPSFLIGHT(){
+  GPS_SS.println("Setting uBlox nav mode: ");
+  uint8_t setNav[] = {
+    0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                      };
+  while(!gps_set_sucess)
+  {
+    sendUBX(setNav, sizeof(setNav)/sizeof(uint8_t));
+    gps_set_sucess=getUBX_ACK(setNav);
+  }
+  gps_set_sucess=0;
+}
+
+//Initialisation script to send startup messages
+void INITSCRIPT(){
+  Serial.println("RTSHAB01 ");
+  Serial.println("High alititude tracker for use in habbing, developed by Chris Atherton ");
+  Serial.println("NTX2 code from UPU ");
+  Serial.println("TinyGPS code from Mikal Hart ");
+  Serial.println("Checksum code from Lunar_Lander ");
+  Serial.println("Code help from chris Stubbs and UPU ");
+  Serial.println("http://www.RoutetoSpace.com ");
+  Serial.println();
+}
+
+//Send string via RTTY to say RTSHAB01 is active
+void ONLINESCRIPT(){
+  sprintf(datastring,"$$RTSHAB-TEST POWER ON \n");
+  noInterrupts();  //Stop all other tasks
+  rtty_txtstring (datastring);  
+  interrupts();
+}
+
+//Start watchkeeping.  If message count reaches upper limit of Int then it is reset. 
+void WATCHKEEPER(){
+msgcount = msgcount + 1;
+    if(msgcount > 32000)
+     {
+       msgcount = 1;
+     }
+}
+
+
+//Begin parsing GPS data
+//int GPSPARSE(){
+
+//for (unsigned long start = millis(); millis() - start < 1000;)
+//  {
+//    while (Serial.available())
+//    {
+//      char c = Serial.read();
+//      GPS_SS.write(c); // uncomment this line if you want to see the GPS data flowing
+      
+//      if (GPS.encode(c)) // Check to see if a new valid sentence come in?
+//      return newGPSData = true;
+//    }
+//  }
+//}
+
+//GPPS parse ends
 
 //GPS Software Serial data
 

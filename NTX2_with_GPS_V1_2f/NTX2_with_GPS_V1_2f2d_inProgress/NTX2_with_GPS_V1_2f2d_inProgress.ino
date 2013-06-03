@@ -38,17 +38,37 @@
 //Definition section
 #define RADIOPIN 13 
 
-//GPS declarations sestion
+
+//GPS declarations section
 TinyGPS GPS;
 SoftwareSerial GPS_SS(3, 4);  //GPS RX (DB0) -> Digital pin 3, GPS TX (DB1) -> Digital pin 4 
 byte gps_set_sucess = 0 ;  //success byte for GPS Software Serial
 char timechara[9];
-char latstr[10] = "0";
-char lonstr[10] = "0";
+char latstr[10] = "0";  //latitude global variable string
+char lonstr[10] = "0";  //longitude global variable string
+float flat, flon;       //float for the latitude and logitude variable
+unsigned long age;      //long int for 
+unsigned long fix_age;
+int year;
+byte month, day, hour, minute, second, hundredths;
+bool newGPSData = false;
+unsigned long chars;
+unsigned short sentences, failed;
+
+//GPS flight data declarations
+int sats = NULL; //number of satellites that are in view
+int alt = NULL; // +/- altitude in meters
+int velocity = NULL;
+int heading = NULL;
+int accu = NULL;//Horizontal dilution of precision - the smaller the value is the more accurate the location
+
+    
+
 
  
 //Data string declaration 
-char datastring[200];
+String datastring[200];
+String checksum_str[10];
 
 int msgcount = 0;
  
@@ -60,189 +80,37 @@ void setup() {
   Serial.begin(9600);
   GPS_SS.begin(9600);
   
-  // THIS COMMAND SETS UP THE GPS FIGHT MODE AND CONFIRMS IT - This section was missing from my previous code
-  
-  
-  GPS_SS.println("Setting uBlox nav mode: ");
-  uint8_t setNav[] = {
-    0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                      };
-  while(!gps_set_sucess)
-  {
-    sendUBX(setNav, sizeof(setNav)/sizeof(uint8_t));
-    gps_set_sucess=getUBX_ACK(setNav);
-  }
-  gps_set_sucess=0;
-  
-  
+  // THIS COMMAND SETS UP THE GPS FIGHT MODE AND CONFIRMS IT
+  GPSFLIGHT();
+    
   //Initialisation script sent via serial
-  
-  Serial.println("RTSHAB01 ");
-  Serial.println("High alititude tracker for use in habbing, developed by Chris Atherton ");
-  Serial.println("NTX2 code from UPU ");
-  Serial.println("TinyGPS code from Mikal Hart ");
-  Serial.println("Checksum code from Lunar_Lander ");
-  Serial.println("http://www.RoutetoSpace.com ");
-  Serial.println();
+  INITSCRIPT();
   
   //Send string via RTTY to say RTSHAB01 is active
-  sprintf(datastring,"$$RTSHAB-TEST POWER ON \n");
-  noInterrupts();  //Stop all other tasks
-  rtty_txtstring (datastring);  
-  interrupts();
+  ONLINESCRIPT();
   
 }
  
 void loop() {
  
-  //Start watchkeeping.  If message count reaches upper limit of Int then it is reset. 
-  msgcount = msgcount + 1;
-    if(msgcount > 32000)
-     {
-       msgcount = 1;
-     }
+ //Start watchkeeping.  If message count reaches upper limit of Int then it is reset. 
+ WATCHKEEPER();
     
-   //function declations 
- bool newGPSData = false; 
- unsigned long chars;
- unsigned short sentences, failed; 
+ //function declations 
+ bool newGPSData = false;  
+ 
 
-    
-    
+ //GPS data declarations
+ 
 //GPS SECTION START    
-    
+    GPSPARSE();
 //Begin parsing GPS data 
-   for (unsigned long start = millis(); millis() - start < 1000;)
-  {
-    while (Serial.available())
-    {
-      char c = Serial.read();
-      GPS_SS.write(c); // uncomment this line if you want to see the GPS data flowing
-      
-      if (GPS.encode(c)) // Check to see if a new valid sentence come in?
-        newGPSData = true;
-    }
-  }
-
- int sats = GPS.satellites(); //number of satellites that are in view
- int alt = GPS.f_altitude(); // +/- altitude in meters
- int velocity = GPS.f_speed_mps()*10;
- int heading = GPS.f_course();
- int accu = GPS.hdop();//Horizontal dilution of precision - the smaller the value is the more accurate the location
-
-if (newGPSData)
-  {
-     
-    float flat, flon;
-    unsigned long age;
-    GPS.f_get_position(&flat, &flon, &age);
-    
-    dtostrf(flat,9,6,latstr); // convert lat from float to string
-    dtostrf(flon,9,6,lonstr); // convert lon from float to string
-    
-    int year;
-    byte month, day, hour, minute, second, hundredths;
-    unsigned long fix_age;
-    GPS.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
- 
-    //build up time stamp
-    String tmstr;
-    if(hour < 10)
-    {
-       tmstr = tmstr + "0";
-    }
-    tmstr = tmstr + String(hour, DEC);
-   // tmstr = tmstr + ":";
-    if(minute < 10)
-    {
-       tmstr = tmstr + "0";
-    }
-    tmstr = tmstr + String(minute, DEC);
-   // tmstr = tmstr + ":";
-    if(second < 10)
-    {
-       tmstr = tmstr + "0";
-    }
-    tmstr = tmstr + String(second, DEC);
-   
-    tmstr.toCharArray(timechara, 9) ;
-   
-   //correct no of 0's in long, (output: 00.575950/-0.575950)
-    if (lonstr[0] == ' ') {
-    lonstr[0] = '0';
-    }
-   
-   //RTTY SECTION START
-
-     //constructs the data string
-    sprintf(datastring, "$$RTSHAB-TEST,%i,%s,%s,%s,%i,%i,%i,",msgcount,timechara,latstr,lonstr,alt,sats,accu); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
-            //sizeof(datastring) removed due to compiler error - invalid change from int to const*Char
-     //constructs the checksum  
-    char checksum_str[10]; //checksum size changed from 6 to 10 to match ukhas wiki
-    sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
-            //sizeof(checksum_str) removed due to compiler error - invalid change from int to const*Char
-     //error checking 
-      if (strlen(datastring) > sizeof(datastring) - 4 - 1)
-            {
-              //don't over flow the buffer.  You should make it bigger
-              return;
-            }
-     //Copy the checksum terminating \o (hence the +1
-     //  removed this line becuase two checksums were sent memcpy(datastring + strlen(datastring), checksum_str, strlen(checksum_str) + 1);
-     //Concatinate the datastring and the checksum together  
-    strcat(datastring,checksum_str);
-     //Send the data string with the checksum 
-  Serial.println(datastring);//Output data to serial
-  noInterrupts();
-  rtty_txtstring (datastring);//Output data via RTTY
-  interrupts();
-  delay(2000); 
- }
-//RTTY SECTION END
-
-
-//RTTY NO GPS SECTION BEGINS
- /*Error checking
-     If no data is received from the GPS then the error message is sent.
- */
- if(newGPSData == false)
-   {
-    Serial.println("No new data");
-    sprintf(datastring,"$$RTSHAB-TEST,%i,NOGPS,%i,",msgcount,sats);
-    char checksum_str[10];
-    sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));
-    if (strlen(datastring) > sizeof(datastring) - 4 - 1)
-            {
-  //don't over flow the buffer.  You should make it bigger
-              return;
-            }
-//Concatinate the datastring and the checksum together  
-    strcat(datastring,checksum_str);
-//Send NO GPS Data with a checksum    
-    Serial.println(datastring);//Output data to serial
-    noInterrupts();  //Stop all other tasks
-    rtty_txtstring (datastring);  //Send "No new data" text string via RTTY
-    interrupts();    //Start tasks again
-   } 
- 
-//RTTY NO GPS SECTION ENDS
-
-
- 
- //Provide statistics info from GPS
- GPS.stats(&chars, &sentences, &failed);
-  
-  Serial.print(" CHARS=");
-  Serial.print(chars);
-  Serial.print(" SENTENCES=");
-  Serial.print(sentences);
-  Serial.print(" CSUM ERR=");
-  Serial.println(failed);
- 
 //Serial GPS SECTION END
+    DATATOSEND(String datastring[200], String checksum_str[10]);
 }
  
  
-void rtty_txtstring (char * string)
+void rtty_txtstring (String * string)
 {
  
   /* Simple function to sent a char at a time to 
@@ -335,6 +203,179 @@ uint16_t gps_CRC16_checksum (char *string)
   return crc;
 }  
 
+//SETS UP THE GPS FIGHT MODE AND CONFIRMS IT
+void GPSFLIGHT(){
+  GPS_SS.println("Setting uBlox nav mode: ");
+  uint8_t setNav[] = {
+    0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                      };
+  while(!gps_set_sucess)
+  {
+    sendUBX(setNav, sizeof(setNav)/sizeof(uint8_t));
+    gps_set_sucess=getUBX_ACK(setNav);
+    if (gps_set_sucess == HIGH){
+     GPS_SS.println("");
+    }
+    else
+    {
+     GPS_SS.println("GPS failed");
+    } 
+  }
+  gps_set_sucess=0;
+}
+
+//Initialisation script to send startup messages
+void INITSCRIPT(){
+  Serial.println("RTSHAB01 ");
+  Serial.println("High alititude tracker for use in habbing, developed by Chris Atherton ");
+  Serial.println("NTX2 code from UPU ");
+  Serial.println("TinyGPS code from Mikal Hart ");
+  Serial.println("Checksum code from Lunar_Lander ");
+  Serial.println("Code help from chris Stubbs and UPU ");
+  Serial.println("http://www.RoutetoSpace.com ");
+  Serial.println();
+}
+
+//Send string via RTTY to say RTSHAB01 is active
+void ONLINESCRIPT(){
+  sprintf(datastring,"$$RTSHAB-TEST POWER ON \n");
+  noInterrupts();  //Stop all other tasks
+  rtty_txtstring (datastring);  
+  interrupts();
+}
+
+//Start watchkeeping.  If message count reaches upper limit of Int then it is reset. 
+void WATCHKEEPER(){
+msgcount = msgcount + 1;
+    if(msgcount > 32000)
+     {
+       msgcount = 1;
+     }
+}
+
+
+//Begin parsing GPS data
+String GPSPARSE(){
+for (unsigned long start = millis(); millis() - start < 1000;)
+ {
+while (Serial.available())
+    {
+      char c = Serial.read();
+      GPS_SS.write(c); // uncomment this line if you want to see the GPS data flowing
+      
+      if (GPS.encode(c)) // Check to see if a new valid sentence come in?
+      newGPSData = true;
+    }
+}
+if (newGPSData)
+  {
+ int sats = GPS.satellites(); //number of satellites that are in view
+ int alt = GPS.f_altitude(); // +/- altitude in meters
+ int velocity = GPS.f_speed_mps()*10;
+ int heading = GPS.f_course();
+ int accu = GPS.hdop();//Horizontal dilution of precision - the smaller the value is the more accurate the location 
+    
+    GPS.f_get_position(&flat, &flon, &age);
+    
+    dtostrf(flat,9,6,latstr); // convert lat from float to string
+    dtostrf(flon,9,6,lonstr); // convert lon from float to string
+    
+    
+    GPS.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
+ 
+    //build up time stamp
+    String tmstr;
+    if(hour < 10)
+    {
+       tmstr = tmstr + "0";
+    }
+    tmstr = tmstr + String(hour, DEC);
+   // tmstr = tmstr + ":";
+    if(minute < 10)
+    {
+       tmstr = tmstr + "0";
+    }
+    tmstr = tmstr + String(minute, DEC);
+   // tmstr = tmstr + ":";
+    if(second < 10)
+    {
+       tmstr = tmstr + "0";
+    }
+    tmstr = tmstr + String(second, DEC);
+   
+    tmstr.toCharArray(timechara, 9) ;
+   
+   //correct no of 0's in long, (output: 00.575950/-0.575950)
+    if (lonstr[0] == ' ') {
+    lonstr[0] = '0';
+    }
+
+   
+   //RTTY SECTION START
+
+     //constructs the data string
+    sprintf(datastring, "$$RTSHAB-TEST,%i,%s,%s,%s,%i,%i,%i,",msgcount,timechara,latstr,lonstr,alt,sats,accu); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
+            //sizeof(datastring) removed due to compiler error - invalid change from int to const*Char
+     //constructs the checksum  
+     //checksum size changed from 6 to 10 to match ukhas wiki
+    sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
+            //sizeof(checksum_str) removed due to compiler error - invalid change from int to const*Char
+     //error checking 
+    if (strlen(datastring) > sizeof(datastring) - 4 - 1)
+            {
+              //don't over flow the buffer.  You should make it bigger
+              return String datastring[200], String checksum_str[10];
+            }
+     //Copy the checksum terminating \o (hence the +1
+     //  removed this line becuase two checksums were sent memcpy(datastring + strlen(datastring), checksum_str, strlen(checksum_str) + 1);
+       
+   // DATATOSEND(String datastring[200], String checksum_str[10]);
+   
+ }
+//RTTY SECTION END
+
+
+//RTTY NO GPS SECTION BEGINS
+ /*Error checking
+     If no data is received from the GPS then the error message is sent.
+ */
+ if(newGPSData == false)
+   {
+    Serial.println("No new data");
+    sprintf(datastring,"$$RTSHAB-TEST,%i,NOGPS,%i,",msgcount,sats);
+    char checksum_str[10];
+    sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));
+    if (strlen(datastring) > sizeof(datastring) - 4 - 1)
+            {
+  //don't over flow the buffer.  You should make it bigger
+              return;
+            }
+//Concatinate the datastring and the checksum together  
+    strcat(datastring,checksum_str);
+//Send NO GPS Data with a checksum    
+    Serial.println(datastring);//Output data to serial
+    noInterrupts();  //Stop all other tasks
+    rtty_txtstring (datastring);  //Send "No new data" text string via RTTY
+    interrupts();    //Start tasks again
+   } 
+ 
+//RTTY NO GPS SECTION ENDS
+
+
+ 
+ //Provide statistics info from GPS
+ GPS.stats(&chars, &sentences, &failed);
+  
+  Serial.print(" CHARS=");
+  Serial.print(chars);
+  Serial.print(" SENTENCES=");
+  Serial.print(sentences);
+  Serial.print(" CSUM ERR=");
+  Serial.println(failed);
+}
+
+
+//GPPS parse ends
+
 //GPS Software Serial data
 
 // Send a byte array of UBX protocol to the GPS
@@ -401,4 +442,16 @@ boolean getUBX_ACK(uint8_t *MSG) {
  
     }
   }
+}
+
+void DATATOSEND (char datastring[200], char checksum_str[10]) {
+  //Concatinate the datastring and the checksum together
+  strcat(datastring,checksum_str);
+     
+  //Send the data string with the checksum 
+  Serial.println(datastring);//Output data to serial
+  noInterrupts();
+  rtty_txtstring (datastring);//Output data via RTTY
+  interrupts();
+  delay(2000);
 }
