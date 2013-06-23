@@ -44,8 +44,8 @@ TinyGPS GPS;
 SoftwareSerial GPS_SS(3, 4);  //GPS RX (DB0) -> Digital pin 3, GPS TX (DB1) -> Digital pin 4 
 byte gps_set_sucess = 0 ;  //success byte for GPS Software Serial
 char timechara[9];
-char latstr[10] = "0";  //latitude global variable string
-char lonstr[10] = "0";  //longitude global variable string
+char latstr[12] = "0";  //latitude global variable string
+char lonstr[12] = "0";  //longitude global variable string
 float flat, flon;       //float for the latitude and logitude variable
 unsigned long age;      //long int for 
 unsigned long fix_age;
