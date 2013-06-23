@@ -154,7 +154,7 @@ void rtty_txbyte (char c)
  
           rtty_txbit (0); // Start bit
  
-          // Send bits for for char LSB first	
+          // Send bits for char LSB first	
  
           for (i=0;i<7;i++) // Change this here 7 or 8 for ASCII-7 / ASCII-8
                   {
@@ -284,8 +284,8 @@ void GPSPARSE()
     
                            GPS.f_get_position(&flat, &flon, &age);
     
-                           dtostrf(flat,9,6,latstr); // convert lat from float to string
-                           dtostrf(flon,9,6,lonstr); // convert lon from float to string
+                           dtostrf(flat,8,6,latstr); // convert lat from float to string
+                           dtostrf(flon,8,6,lonstr); // convert lon from float to string
         
                            GPS.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
  
@@ -366,10 +366,10 @@ void GPSPARSE()
                            strcat(datastring,checksum_str);
                            
                            //Send NO GPS Data with a checksum    
-                           Serial.println(datastring);//Output data to serial
-                           noInterrupts();  //Stop all other tasks
-                           rtty_txtstring (datastring);  //Send "No new data" text string via RTTY
-                           interrupts();    //Start tasks again
+                           //Serial.println(datastring);//Output data to serial
+                           //noInterrupts();  //Stop all other tasks
+                           //rtty_txtstring (datastring);  //Send "No new data" text string via RTTY
+                           //interrupts();    //Start tasks again
                   } 
  
                   //RTTY NO GPS SECTION ENDS
