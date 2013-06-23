@@ -284,8 +284,8 @@ void GPSPARSE()
     
                            GPS.f_get_position(&flat, &flon, &age);
     
-                           dtostrf(flat,8,6,latstr); // convert lat from float to string
-                           dtostrf(flon,8,6,lonstr); // convert lon from float to string
+                           dtostrf(flat,9,6,latstr); // convert lat from float to string
+                           dtostrf(flon,10,6,lonstr); // convert lon from float to string
         
                            GPS.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
  
