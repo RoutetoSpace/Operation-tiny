@@ -46,7 +46,7 @@ byte gps_set_sucess = 0 ;  //success byte for GPS Software Serial
 char timechara[9];
 char latstr[12] = "0";  //latitude global variable string
 char lonstr[12] = "0";  //longitude global variable string
-float flat, flon;       //float for the latitude and logitude variable
+float flat, flon;       //float for the latitude and logitude
 unsigned long age;      //long int for 
 unsigned long fix_age;
 int year;
@@ -60,7 +60,7 @@ int sats = NULL; //number of satellites that are in view
 int alt = NULL; // +/- altitude in meters
 int velocity = NULL;
 int heading = NULL;
-int accu = NULL;//Horizontal dilution of precision - the smaller the value is the more accurate the location
+//int accu = NULL;//Horizontal dilution of precision - the smaller the value is the more accurate the location
 
     
 
@@ -211,7 +211,7 @@ void GPSFLIGHT()
   {
           GPS_SS.println("Setting uBlox nav mode: ");
           uint8_t setNav[] = {
-          0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x06, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0xDC                      };
+          0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x08, 0x03, 0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x20                      };
           while(!gps_set_sucess)
                   {
                            sendUBX(setNav, sizeof(setNav)/sizeof(uint8_t));
@@ -280,12 +280,14 @@ void GPSPARSE()
                            int alt = GPS.f_altitude(); // +/- altitude in meters
                            int velocity = GPS.f_speed_mps()*10;
                            int heading = GPS.f_course();
-                           int accu = GPS.hdop();//Horizontal dilution of precision - the smaller the value is the more accurate the location 
-    
+                           int accu = GPS.hdop(); //Horizontal dilution of precision - the smaller the value is the more accurate the location
+                           
+                           
                            GPS.f_get_position(&flat, &flon, &age);
     
                            dtostrf(flat,-4,6,latstr); // convert lat from float to string
                            dtostrf(flon,-4,6,lonstr); // convert lon from float to string
+                        
         
                            GPS.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &fix_age);
  
