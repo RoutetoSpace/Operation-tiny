@@ -396,7 +396,7 @@ void GPSPARSE()
                            long Vcc = VccResult;  //Adds voltage reading to error message
                            
                            Serial.println("No new data");
-                           sprintf(datastring,"$$RTSHAB1,%i,NOGPS,%s,%i,%i,%d,",msgcount,ExtTempC,sats,IntTempC,Vcc);
+                           sprintf(datastring,"$$RTSHAB1,%i,NOGPS,%s,%i,%d,%i,",msgcount,ExtTempC,IntTempC,Vcc,sats);
                            char checksum_str[10];
                            sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));
                            
@@ -527,7 +527,9 @@ boolean getUBX_ACK(uint8_t *MSG)
           ADCValue = analogRead(AD22100S); //Reads data from the AD22100S pin
           ADCVout = (ADCValue / 1023.0) * VccResult;  
           AD22100Sout = (ADCVout/22.5)-63.11111111; //Calibration against themostat required 3 degrees less. Changed Vout to ADCVout to take in to account voltage fultuations
-          AD22100Sout = AD22100Sout / 1.8 - 32;  //line added due to ExtTemp being displayed in fahrenheit -- newly inserted
+          AD22100Sout = AD22100Sout - 30;  //lines added due to ExtTemp being displayed in fahrenheit -- newly inserted
+          AD22100Sout = AD22100Sout / 2;
+          AD22100Sout = AD22100Sout - 2;
           
           dtostrf(AD22100Sout,5,2,ExtTempC); // convert AD22100Sout from float to string
   }
