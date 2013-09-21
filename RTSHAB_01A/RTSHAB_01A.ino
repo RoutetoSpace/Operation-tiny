@@ -526,7 +526,8 @@ boolean getUBX_ACK(uint8_t *MSG)
   {
           ADCValue = analogRead(AD22100S); //Reads data from the AD22100S pin
           ADCVout = (ADCValue / 1023.0) * VccResult;  
-          AD22100Sout = (ADCVout/22.5)-63.11111111; //Calibration against themostat required 3 degrees less. Changed Vout to ADCVout to take in to account voltage fultuations  
+          AD22100Sout = (ADCVout/22.5)-63.11111111; //Calibration against themostat required 3 degrees less. Changed Vout to ADCVout to take in to account voltage fultuations
+          AD22100Sout = AD22100Sout / 1.8 - 32;  //line added due to ExtTemp being displayed in fahrenheit -- newly inserted
           
           dtostrf(AD22100Sout,5,2,ExtTempC); // convert AD22100Sout from float to string
   }
