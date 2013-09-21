@@ -364,7 +364,7 @@ void GPSPARSE()
                            //RTTY SECTION START
 
                            //constructs the data string
-                           sprintf(datastring, "$$RTSHAB1,%i,%s,%s,%s,%i,%i,%i,%i,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,ExtTempC,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
+                           sprintf(datastring, "$$RTSHAB1,%i,%s,%s,%s,%i,%i,%i,%s,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,ExtTempC,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
                            
                            //constructs the checksum  
                            sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
