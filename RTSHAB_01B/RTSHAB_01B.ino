@@ -87,7 +87,7 @@ DS1620 d = DS1620(dq, clk, rst);  // Call DS1620 constructor using pin variables
 int IntTempC = NULL;
  
 //Data string declaration 
-char datastring[200];
+char datastring[300];
 char checksum_str[10];
 
 int msgcount = 0;
@@ -531,7 +531,7 @@ boolean getUBX_ACK(uint8_t *MSG)
           //AD22100Sout = AD22100Sout / 2;  removed as temp was now just over half the value it should have been
           //AD22100Sout = AD22100Sout - 2;
           
-          dtostrf(AD22100Sout,-2,2,ExtTempC); // convert AD22100Sout from float to string
+          dtostrf(AD22100Sout,5,2,ExtTempC); // convert AD22100Sout from float to string
   }
   
   void IntTempSetup()
