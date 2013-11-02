@@ -226,7 +226,7 @@ uint16_t gps_CRC16_checksum (char *string)
           crc = 0xFFFF;
  
           // Calculate checksum ignoring the first two $s
-          for (i = 2; i < strlen(string); i++)
+          for (i = 4; i < strlen(string); i++)
                   {
                           c = string[i];
                           crc = _crc_xmodem_update (crc, c);
