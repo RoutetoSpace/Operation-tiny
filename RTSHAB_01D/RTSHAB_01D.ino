@@ -60,8 +60,8 @@ unsigned short sentences, failed;
 //GPS flight data declarations
 int sats = NULL; //number of satellites that are in view
 long alt = NULL; // +/- altitude in meters
-int velocity = NULL;
-int heading = NULL;
+int velo = NULL;
+int head = NULL;
 int acc = NULL; //hdop accuracy.  The smaller the number the more accurate the GPS result
 
 
@@ -293,8 +293,8 @@ void WATCHKEEPER()
           
           sats = NULL; //number of satellites that are in view
           alt = NULL; // +/- altitude in meters
-          velocity = NULL;  //velocity of payload
-          heading = NULL;  //direction of travel
+          velo = NULL;  //velocity of payload
+          head = NULL;  //direction of travel
           acc = NULL;   //accuracy of satallite data
           Vcc = NULL;  //Internal voltage reading
   }
@@ -317,8 +317,8 @@ void GPSPARSE()
                   {
                            int sats = GPS.satellites(); //number of satellites that are in view
                            long alt = GPS.f_altitude(); // +/- altitude in meters
-                           int velocity = GPS.f_speed_mps()*10;
-                           int heading = GPS.f_course();
+                           int velo = GPS.f_speed_mps()*10;
+                           int head = GPS.f_course();
                            int accu = GPS.hdop(); //Horizontal dilution of precision - the smaller the value is the more accurate the location
                            
                            long Vcc = VccResult;
@@ -364,7 +364,7 @@ void GPSPARSE()
                            //RTTY SECTION START
 
                            //constructs the data string
-                           sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%d,%i,%i,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
+                           sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%ld,%i,%i,%i,%i,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,velo,head,accu,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
                            //sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%d,%i,%i,%s,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,ExtTempC,IntTempC,Vcc);
                            
                            //constructs the checksum  

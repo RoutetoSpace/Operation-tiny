@@ -59,7 +59,7 @@ unsigned short sentences, failed;
 
 //GPS flight data declarations
 int sats = NULL; //number of satellites that are in view
-int alt = NULL; // +/- altitude in meters
+long alt = NULL; // +/- altitude in meters
 int velocity = NULL;
 int heading = NULL;
 int acc = NULL; //hdop accuracy.  The smaller the number the more accurate the GPS result
@@ -315,7 +315,7 @@ void GPSPARSE()
           if (newGPSData)
                   {
                            int sats = GPS.satellites(); //number of satellites that are in view
-                           int alt = GPS.f_altitude(); // +/- altitude in meters
+                           long alt = GPS.f_altitude(); // +/- altitude in meters
                            int velocity = GPS.f_speed_mps()*10;
                            int heading = GPS.f_course();
                            int accu = GPS.hdop(); //Horizontal dilution of precision - the smaller the value is the more accurate the location
@@ -363,7 +363,7 @@ void GPSPARSE()
                            //RTTY SECTION START
 
                            //constructs the data string
-                           sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%i,%i,%i,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
+                           sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%ld,%i,%i,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
                            
                            //constructs the checksum  
                            sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
