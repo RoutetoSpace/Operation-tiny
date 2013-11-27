@@ -20,12 +20,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-    declaration of sats incorrect.  wrong value - moved declarations to after the point the GPS is called
-    test payload with gps data to see if there are any issues - see ukhas payload testing page for details
-    need to update GPS configuration setting to match the values I require on startup
-    Need to correct the upload issue.  Arduino fails to upload when GPS is active.  When disabled (rx or tx removed) upload completes successfully.  Issue is the same when uploading GPS test script.
-       
-    */ 
+*/ 
 
 //Includes section
  
@@ -68,14 +63,6 @@ int acc = NULL; //hdop accuracy.  The smaller the number the more accurate the G
 //Vcc global declaration
 long VccResult = NULL;
 long Vcc = NULL;
-
-//AD22100S Ext Temp Sensor declarations
-int AD22100S = A0; //define temp sensor pin for AD22100S
-float AD22100Sout = NULL;
-unsigned int ADCValue = NULL;
-double ADCVout = NULL;
-
-//char ExtTempC[10] = "0";
 
 //DS1620 Int Temp Sensor Definitions
 // Define pins for 3-wire serial communication
@@ -365,8 +352,7 @@ void GPSPARSE()
 
                            //constructs the data string
                            sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%ld,%i,%i,%i,%i,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,velo,head,accu,IntTempC,Vcc); // Puts the required data in the datastring  -  removed 3 unnecessary %i's --1/4/13 - added an extra , to string becuase of error with checksum
-                           //sprintf(datastring, "$$$$RTSHAB1,%i,%s,%s,%s,%d,%i,%i,%s,%i,%d,",msgcount,timechara,latstr,lonstr,alt,sats,accu,ExtTempC,IntTempC,Vcc);
-                           
+                                                      
                            //constructs the checksum  
                            sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));//removed * from "*%04X\n" null setting.  %04X/n means (%)placeholder, use 0 instead of spaces (0), length of 4 (4), type unsigned int as a hexidecimal number uppercase(X), with (/), type (n) which means print nothing. see http://en.wikipedia.org/wiki/Printf_format_string#Format_placeholders
             
@@ -398,7 +384,7 @@ void GPSPARSE()
                            
                            Serial.println("No new data");
                            sprintf(datastring,"$$$$RTSHAB1,%i,NOGPS,%i,%d,%i,",msgcount,IntTempC,Vcc,sats);
-                           //sprintf(datastring,"$$$$RTSHAB1,%i,NOGPS,%s,%i,%d,%i,",msgcount,ExtTempC,IntTempC,Vcc,sats);
+                           
                            char checksum_str[10];
                            sprintf(checksum_str, "*%04X\n", gps_CRC16_checksum(datastring));
                            
@@ -524,21 +510,7 @@ boolean getUBX_ACK(uint8_t *MSG)
                     
   }
   
- /** void ExtTemp()
-  {
-          ADCValue = analogRead(AD22100S); //Reads data from the AD22100S pin
-          ADCVout = (ADCValue / 1023.0) * VccResult;  
-          AD22100Sout = (ADCVout/22.5)-63.11111111; //Calibration against themostat required 3 degrees less. Changed Vout to ADCVout to take in to account voltage fultuations
-          AD22100Sout = AD22100Sout - 30;  //lines added due to ExtTemp being displayed in fahrenheit -- newly inserted
-          //AD22100Sout = AD22100Sout / 2;  removed as temp was now just over half the value it should have been
-          //AD22100Sout = AD22100Sout - 2;
-          
-          dtostrf(AD22100Sout,5,2,ExtTempC); // convert AD22100Sout from float to string
-  }
-  
-  **/
-  
-  void IntTempSetup()
+   void IntTempSetup() //Function for internal temperature setup
   {
   
           // Write TH and TL setpoints to DS1620 EEPROM  
