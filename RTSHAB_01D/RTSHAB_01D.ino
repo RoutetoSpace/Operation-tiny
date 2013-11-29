@@ -110,17 +110,13 @@ void loop()
          
          //Check voltage used
          readVcc();
-         
-         //Read External Temp from AD22100S
-         //ExtTemp();  
-         
+                      
          //Read Internal Temp from DS1620
          IntTemp();
     
          //function declations 
          bool newGPSData = false;  
  
-
          //GPS START    
          GPSPARSE();
          
@@ -213,7 +209,7 @@ uint16_t gps_CRC16_checksum (char *string)
           crc = 0xFFFF;
  
           // Calculate checksum ignoring the first two $s
-          for (i = 2; i < strlen(string); i++)
+          for (i = 4; i < strlen(string); i++)
                   {
                           c = string[i];
                           crc = _crc_xmodem_update (crc, c);
